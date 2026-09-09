@@ -1,0 +1,28 @@
+{
+  "name": "hospital-managment-system",
+  "version": "1.0.0",
+  "description": "A comprehensive web-based Hospital Management System\"designed to streamline patient registration, appointment booking, doctor management, and medical records efficiently.\"",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/youssefradwan288-bit/Hospital-Managment-System.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/youssefradwan288-bit/Hospital-Managment-System/issues"
+  },
+  "homepage": "https://github.com/youssefradwan288-bit/Hospital-Managment-System#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "mongoose": "^9.9.5",
+    "nodemon": "^3.1.14"
+  }
+}
