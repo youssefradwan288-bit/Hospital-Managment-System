@@ -1,18 +1,25 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const { userRouter } = require("./routes/users.route.js");
-const { error } = require("console");
-const { connectDB } = require("./config/db.config.js");
-const { PORT } = require("./config/env.config.js");
-const app = express();
-
 require("dotenv").config();
 
+const { userRouter } = require("./routes/users.route");
+
+const app = express();
+
 app.use(express.json());
+
+// Users routes
 app.use("/users", userRouter);
 
-connectDB();
+mongoose
+  .connect(process.env.DB_LINK)
+  .then(() => {
+    console.log("MongoDB connected");
 
-app.listen(PORT, () => {
-  console.log("Server is running");
-}); 
+    app.listen(process.env.PORT, () => {
+      console.log(`Server running on port ${process.env.PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.log("MongoDB connection error:", error);
+  });
