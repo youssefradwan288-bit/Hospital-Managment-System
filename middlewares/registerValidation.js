@@ -1,13 +1,14 @@
 const { body, validationResult } = require("express-validator");
+const userModel = require("../models/users.model");
 
 const registerValidationRules = [
   body("name")
     .trim()
     .notEmpty()
     .withMessage("Name is required")
-    .minlength({ min: 3 })
+    .isLength({ min: 3 })
     .withMessage("Name must be at least 3 characters")
-    .maxlength({ max: 50 })
+    .isLength({ max: 50 })
     .withMessage("Name cannot exceed 50 characters"),
 
   body("email")

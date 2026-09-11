@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const { userModel } = require("../models/users.model");
+const userModel = require("../models/users.model");
 
 // ==========================
 // Get All Users
@@ -27,9 +27,7 @@ const getUsers = async (req, res) => {
 // ==========================
 const getUserById = async (req, res) => {
   try {
-    const user = await userModel
-      .findById(req.params.id)
-      .select("-password");
+    const user = await userModel.findById(req.params.id).select("-password");
 
     if (!user) {
       return res.status(404).json({
@@ -54,13 +52,7 @@ const getUserById = async (req, res) => {
 // ==========================
 const addUser = async (req, res) => {
   try {
-    const {
-      name,
-      email,
-      password,
-      phone,
-      role,
-    } = req.body;
+    const { name, email, password, phone, role } = req.body;
 
     // Check if email already exists
     const existingUser = await userModel.findOne({ email });
@@ -112,14 +104,10 @@ const updateData = async (req, res) => {
     }
 
     const user = await userModel
-      .findByIdAndUpdate(
-        req.params.id,
-        otherData,
-        {
-          new: true,
-          runValidators: true,
-        }
-      )
+      .findByIdAndUpdate(req.params.id, otherData, {
+        new: true,
+        runValidators: true,
+      })
       .select("-password");
 
     if (!user) {
@@ -181,10 +169,7 @@ const userLogin = async (req, res) => {
     }
 
     // Check password
-    const isPasswordCorrect = await bcrypt.compare(
-      password,
-      user.password
-    );
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
     if (!isPasswordCorrect) {
       return res.status(401).json({
@@ -212,7 +197,7 @@ const userLogin = async (req, res) => {
       process.env.JWT_SECRET,
       {
         expiresIn: "1d",
-      }
+      },
     );
 
     // Don't send password
@@ -239,4 +224,4 @@ module.exports = {
   updateData,
   deleteUser,
   userLogin,
-}; 
+};

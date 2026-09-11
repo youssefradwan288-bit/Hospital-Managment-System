@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-require('./users.model.js'); 
 
 const userSchema = new mongoose.Schema(
   {
@@ -56,6 +55,4 @@ const userSchema = new mongoose.Schema(
   },
 );
 
-});
-
-module.exports = mongoose.model('Appointment', appointmentSchema);
+module.exports = mongoose.model('User', userSchema);
