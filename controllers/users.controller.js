@@ -1,52 +1,242 @@
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+
 const { userModel } = require("../models/users.model");
 
-const getUsers = (req, res) => {
-  userModel
-    .find({})
-    .then((data) => {
-      res.json({ massage: "users fetced", data });
-    })
-    .catch((err) => {
-      console.log("error when get users", err);
+// ==========================
+// Get All Users
+// ==========================
+const getUsers = async (req, res) => {
+  try {
+    const users = await userModel.find().select("-password");
+
+    res.status(200).json({
+      message: "Users fetched successfully",
+      users,
     });
+  } catch (error) {
+    res.status(500).json({
+      message: "Server error",
+      error: error.message,
+    });
+  }
 };
 
-const addData = (req, res) => {
-  userModel
-    .create(req.body)
-    .then((data) => {
-      res.json({ massage: "users added"});
-    })
-    .catch((err) => {
-      console.log("error when adding users", err);
-    });
-};
+// ==========================
+// Get User By ID
+// ==========================
+const getUserById = async (req, res) => {
+  try {
+    const user = await userModel
+      .findById(req.params.id)
+      .select("-password");
 
-const updateData = (req, res) => {
-  fs.readFileSync("./data.json", "utf8");
-
-  const users = JSON.parse(data);
-
-  users.push(req.body);
-
-  fs.writeFile("./data.json", JSON.stringify(users), (err) => {
-    if (err) {
-      console.error("Error writing file:", err);
-    } else {
-      console.log("File written successfully");
-      res.send("post method");
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
     }
-  });
+
+    res.status(200).json({
+      message: "User fetched successfully",
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Server error",
+      error: error.message,
+    });
+  }
 };
 
-const deleteData = (req, res) => {
-  let data = fs.readFileSync("./data.json", "utf8");
+// ==========================
+// Add User / Register
+// ==========================
+const addUser = async (req, res) => {
+  try {
+    const {
+      name,
+      email,
+      password,
+      phone,
+      role,
+    } = req.body;
 
-  data = data.replace(req.body.name, "");
+    // Check if email already exists
+    const existingUser = await userModel.findOne({ email });
 
-  fs.writeFileSync("./data.json", data);
+    if (existingUser) {
+      return res.status(409).json({
+        message: "Email already exists",
+      });
+    }
 
-  res.send("Name deleted successfully");
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user
+    const user = await userModel.create({
+      name,
+      email,
+      password: hashedPassword,
+      phone,
+      role,
+    });
+
+    // Don't return password
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    res.status(201).json({
+      message: "User created successfully",
+      user: userResponse,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Server error",
+      error: error.message,
+    });
+  }
 };
 
-module.exports = { getUsers, addData, updateData, deleteData };
+// ==========================
+// Update User
+// ==========================
+const updateData = async (req, res) => {
+  try {
+    const { password, ...otherData } = req.body;
+
+    // If user wants to update password
+    if (password) {
+      otherData.password = await bcrypt.hash(password, 10);
+    }
+
+    const user = await userModel
+      .findByIdAndUpdate(
+        req.params.id,
+        otherData,
+        {
+          new: true,
+          runValidators: true,
+        }
+      )
+      .select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      message: "User updated successfully",
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+// ==========================
+// Delete User
+// ==========================
+const deleteUser = async (req, res) => {
+  try {
+    const user = await userModel.findByIdAndDelete(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      message: "User deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+// ==========================
+// Login
+// ==========================
+const userLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Find user by email only
+    const user = await userModel.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({
+        message: "Invalid email or password",
+      });
+    }
+
+    // Check password
+    const isPasswordCorrect = await bcrypt.compare(
+      password,
+      user.password
+    );
+
+    if (!isPasswordCorrect) {
+      return res.status(401).json({
+        message: "Invalid email or password",
+      });
+    }
+
+    // Check if account is active
+    if (!user.isActive) {
+      return res.status(403).json({
+        message: "Your account is inactive",
+      });
+    }
+
+    // Update last login
+    user.lastLoginDate = new Date();
+    await user.save();
+
+    // Create JWT
+    const token = jwt.sign(
+      {
+        userId: user._id,
+        role: user.role,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1d",
+      }
+    );
+
+    // Don't send password
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: userResponse,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+module.exports = {
+  getUsers,
+  getUserById,
+  addUser,
+  updateData,
+  deleteUser,
+  userLogin,
+}; 
