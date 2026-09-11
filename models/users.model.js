@@ -1,17 +1,23 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
+require('./users.model.js'); 
 
-const userSchema = new mongoose.Schema({
-  name: String,
-  email: String,
-  password: String,
-  phone: String,
-  role: String,
-  isActive: Boolean,
-  lastLoginDate: Date,
-  createdAt: Date,
-  updatedAt : Date
+const appointmentSchema = new mongoose.Schema({
+  patient: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  doctor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  department: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Department',
+    required: true
+  },
+
 });
 
-const userModel = mongoose.model("users", userSchema);
-
-module.exports = { userModel };
+module.exports = mongoose.model('Appointment', appointmentSchema);
