@@ -3,6 +3,11 @@ const express = require("express");
 const { authenticate } = require("../middlewares/isLogged");
 
 const {
+  registerValidationRules,
+  validate,
+} = require("../middlewares/registerValidation");
+
+const {
   getUsers,
   getUserById,
   addUser,
@@ -23,7 +28,7 @@ userRouter.post("/login", userLogin);
 userRouter.get("/:id", getUserById);
 
 // Register / Add user
-userRouter.post("/", addUser);
+userRouter.post("/", registerValidationRules, validate, addUser);
 
 // Update user
 userRouter.put("/:id", authenticate, updateData);
