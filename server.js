@@ -9,25 +9,29 @@ const { medicalReportsRouter } = require("./routes/medicalReports.route");
 const appointmentRoutes = require("./routes/appointment.route");
 const { userRouter } = require("./routes/users.route");
 const { patientRouter } = require("./routes/patient.route");
+const notificationRoutes = require("./routes/notifications.route");
 
 const app = express();
 
 app.use(express.json());
 
-// Users routes
+// Users route
 app.use("/users", userRouter);
 
-// Medicine routes
+// Medicine route
 app.use("/api/midicine", midicineRouter);
 
-// Medical Reports routes
+// Medical Reports route
 app.use("/api/medicalReports", medicalReportsRouter);
 
-// Appointment routes
+// Appointment route
 app.use("/api/appointments", appointmentRoutes);
 
-// Patient routes
+// Patient route
 app.use("/patients", patientRouter);
+
+// Notifcations route
+app.use("/api/notifications", notificationRoutes);
 
 mongoose
   .connect(process.env.DB_LINK)

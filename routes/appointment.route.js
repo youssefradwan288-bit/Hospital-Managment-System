@@ -1,16 +1,40 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
+
+const { authenticate } = require("../middlewares/isLogged");
+const { authorize } = require("../middlewares/authorize");
+const { checkAppointmentAccess } = require("../middlewares/appointmentAccess");
+const {
+  createAppointmentValidationRules,
+  updateAppointmentValidationRules,
+  validate,
+} = require("../middlewares/appointmentValidation");
+
 const {
   createAppointment,
   getAllAppointments,
-  updateAppointment
-} = require('../controllers/appointment.controller');
+  getAppointmentById,
+  updateAppointment,
+  deleteAppointment,
+} = require("../controllers/appointment.controller");
 
-router.route('/')
+// All appointment routes require a logged-in user
+router.use(authenticate);
+
+router
+  .route("/")
   .get(getAllAppointments)
-  .post(createAppointment);
+  .post(createAppointmentValidationRules, validate, createAppointment);
 
-router.route('/:id')
-  .put(updateAppointment);
+router
+  .route("/:id")
+  .get(checkAppointmentAccess, getAppointmentById)
+  .put(
+    updateAppointmentValidationRules,
+    validate,
+    checkAppointmentAccess,
+    updateAppointment,
+  )
+  .delete(authorize("doctor"), deleteAppointment);
 
 module.exports = router;
