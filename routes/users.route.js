@@ -1,6 +1,7 @@
 const express = require("express");
 
 const { authenticate } = require("../middlewares/isLogged");
+const { authorize } = require("../middlewares/authorize");
 
 const {
   registerValidationRules,
@@ -11,30 +12,34 @@ const {
   getUsers,
   getUserById,
   addUser,
-  updateData,
+  updateUserData,
   deleteUser,
   userLogin,
+  createStaffAccount,
 } = require("../controllers/users.controller");
 
 const userRouter = express.Router();
 
-// Get all users
-userRouter.get("/", getUsers);
+// Get all users - authenticated users only
+userRouter.get("/", authenticate, getUsers);
 
 // Login
 userRouter.post("/login", userLogin);
 
-// Get user by ID
-userRouter.get("/:id", getUserById);
+// Get user by ID - authenticated users only
+userRouter.get("/:id", authenticate, getUserById);
 
-// Register / Add user
+// Register / Add user (public - always creates role "user")
 userRouter.post("/", registerValidationRules, validate, addUser);
 
-// Update user
-userRouter.put("/:id", authenticate, updateData);
+// Create doctor/admin account - admin only
+userRouter.post("/staff", authenticate, authorize("admin"), createStaffAccount);
 
-// Delete user
-userRouter.delete("/:id", authenticate, deleteUser);
+// Update user - the user themselves, or an admin (checked inside controller)
+userRouter.put("/:id", authenticate, updateUserData);
+
+// Delete user - admin only
+userRouter.delete("/:id", authenticate, authorize("admin"), deleteUser);
 
 module.exports = {
   userRouter,

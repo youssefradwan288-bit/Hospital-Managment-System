@@ -1,6 +1,6 @@
 const patientModel = require("../models/patient.model");
 
-// Get All Patients (doctors only)
+// Get all patients - accessible to doctors and admins only
 const getPatients = async (req, res) => {
   try {
     const patients = await patientModel
@@ -20,7 +20,7 @@ const getPatients = async (req, res) => {
   }
 };
 
-// Get Patient By ID (the patient themselves, or a doctor)
+// Get a single patient by ID - accessible to the patient themselves, or a doctor/admin
 
 const getPatientById = async (req, res) => {
   try {
@@ -36,9 +36,9 @@ const getPatientById = async (req, res) => {
     }
 
     const isOwner = patient.user._id.toString() === req.user.userId;
-    const isDoctor = req.user.role === "doctor";
+    const isDoctorOrAdmin = req.user.role === "doctor" || req.user.role === "admin";
 
-    if (!isOwner && !isDoctor) {
+    if (!isOwner && !isDoctorOrAdmin) {
       return res.status(403).json({
         message: "You are not allowed to view this patient record",
       });
@@ -56,9 +56,7 @@ const getPatientById = async (req, res) => {
   }
 };
 
-
-// Add Patient / Create patient profile
-
+// Create a new patient profile for the logged-in user
 const addPatient = async (req, res) => {
   try {
     const {
@@ -124,8 +122,7 @@ const addPatient = async (req, res) => {
 };
 
 
-// Update Patient
-
+// Update a patient - accessible to the patient themselves, or a doctor/admin
 const updatePatient = async (req, res) => {
   try {
     const patient = await patientModel.findById(req.params.id);
@@ -137,9 +134,8 @@ const updatePatient = async (req, res) => {
     }
 
     const isOwner = patient.user.toString() === req.user.userId;
-    const isDoctor = req.user.role === "doctor";
-
-    if (!isOwner && !isDoctor) {
+    const isDoctorOrAdmin = req.user.role === "doctor" || req.user.role === "admin";
+    if (!isOwner && !isDoctorOrAdmin) {
       return res.status(403).json({
         message: "You are not allowed to update this patient record",
       });
@@ -147,7 +143,7 @@ const updatePatient = async (req, res) => {
 
     // A patient shouldn't be able to reassign their own primary doctor or user link
     const updateData = { ...req.body };
-    if (!isDoctor) {
+    if (!isDoctorOrAdmin) {
       delete updateData.primaryDoctor;
       delete updateData.user;
     }
@@ -172,9 +168,7 @@ const updatePatient = async (req, res) => {
   }
 };
 
-// ==========================
-// Delete Patient (doctors only)
-// ==========================
+// Delete a patient - accessible to doctors and admins only
 const deletePatient = async (req, res) => {
   try {
     const patient = await patientModel.findByIdAndDelete(req.params.id);
