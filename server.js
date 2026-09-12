@@ -18,7 +18,7 @@ app.use(express.json());
 app.use("/users", userRouter);
 
 // Medicine routes
-app.use("/api/midicine", midicineRouter);
+app.use("/api/medicines", midicineRouter);
 
 // Medical Reports routes
 app.use("/api/medicalReports", medicalReportsRouter);

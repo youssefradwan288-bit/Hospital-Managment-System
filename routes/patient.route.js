@@ -14,9 +14,9 @@ const {
 const patientRouter = express.Router();
 
 // Get all patients - doctors only
-patientRouter.get("/", authenticate, authorize("doctor"), getPatients);
+patientRouter.get("/", authenticate, authorize("doctor", "admin"), getPatients);
 
-// Get a single patient - the patient themselves, or a doctor
+// Get a single patient - the patient themselves, or a doctor and admin
 patientRouter.get("/:id", authenticate, getPatientById);
 
 // Create a patient profile - any logged-in user (for their own account)
@@ -26,7 +26,7 @@ patientRouter.post("/", authenticate, addPatient);
 patientRouter.put("/:id", authenticate, updatePatient);
 
 // Delete a patient - doctors only
-patientRouter.delete("/:id", authenticate, authorize("doctor"), deletePatient);
+patientRouter.delete("/:id", authenticate, authorize("doctor", "admin"), deletePatient);
 
 module.exports = {
   patientRouter,

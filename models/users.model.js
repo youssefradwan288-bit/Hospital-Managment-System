@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["user", "doctor"],
+      enum: ["user", "doctor", "admin"],
       default: "user",
     },
 
@@ -54,5 +54,52 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+const createStaffAccount = async (req, res) => {
+  try {
+    const { name, email, password, phone, role } = req.body;
+
+    if (!["doctor", "admin"].includes(role)) {
+      return res.status(400).json({
+        message: "role must be either 'doctor' or 'admin'",
+      });
+    }
+
+    const existingUser = await userModel.findOne({ email });
+
+    if (existingUser) {
+      return res.status(409).json({
+        message: "Email already exists",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await userModel.create({
+      name,
+      email,
+      password: hashedPassword,
+      phone,
+      role,
+    });
+
+    res.status(201).json({
+      message: `${role} account created successfully`,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+
 
 module.exports = mongoose.model('User', userSchema);
