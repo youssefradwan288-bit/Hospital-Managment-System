@@ -6,9 +6,7 @@ const { authenticate } = require("../middlewares/isLogged");
 
 const { authorize } = require("../middlewares/authorize");
 
-const {
-  checkAppointmentAccess,
-} = require("../middlewares/appointmentAccess");
+const { checkAppointmentAccess } = require("../middlewares/appointmentAccess");
 
 const {
   createAppointment,
@@ -22,25 +20,13 @@ const {
 router.use(authenticate);
 
 // Create and get all appointments
-router
-  .route("/")
-  .get(getAllAppointments)
-  .post(createAppointment);
+router.route("/").get(getAllAppointments).post(createAppointment);
 
 // Get, update and delete appointment by ID
 router
   .route("/:id")
-  .get(
-    checkAppointmentAccess,
-    getAppointmentById
-  )
-  .put(
-    checkAppointmentAccess,
-    updateAppointment
-  )
-  .delete(
-    authorize("doctor"),
-    deleteAppointment
-  );
+  .get(checkAppointmentAccess, getAppointmentById)
+  .put(checkAppointmentAccess, updateAppointment)
+  .delete(authorize("doctor", "admin"), deleteAppointment);
 
 module.exports = router;

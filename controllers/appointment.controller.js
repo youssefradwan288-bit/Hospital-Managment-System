@@ -1,23 +1,76 @@
 const appointmentModel = require("../models/appointment.model");
-require("../models/users.model");
+const patientModel = require("../models/patient.model");
+const doctorModel = require("../models/doctors.model");
 
 // ==========================
 // Create Appointment
 // - "user" (patient) books with a doctor -> patient is forced to self
 // - "doctor" books on behalf of a patient -> doctor is forced to self
+// Note: appointment.patient/doctor reference Patient/Doctor profile IDs,
+// NOT the User account id - so we look up each profile first.
 // ==========================
 const createAppointment = async (req, res) => {
   try {
     const isDoctor = req.user.role === "doctor";
 
-    const patient = isDoctor ? req.body.patient : req.user.userId;
-    const doctor = isDoctor ? req.user.userId : req.body.doctor;
+    let patientId, doctorId;
 
-    if (!patient || !doctor) {
-      return res.status(400).json({
-        success: false,
-        message: isDoctor ? "patient is required" : "doctor is required",
+    if (isDoctor) {
+      // Doctor is booking on behalf of a patient
+      if (!req.body.patient) {
+        return res.status(400).json({
+          success: false,
+          message: "patient is required",
+        });
+      }
+
+      const patientExists = await patientModel.findById(req.body.patient);
+      if (!patientExists) {
+        return res.status(404).json({
+          success: false,
+          message: "Patient not found",
+        });
+      }
+      patientId = patientExists._id;
+
+      const doctorProfile = await doctorModel.findOne({
+        user: req.user.userId,
       });
+      if (!doctorProfile) {
+        return res.status(404).json({
+          success: false,
+          message: "Doctor profile not found",
+        });
+      }
+      doctorId = doctorProfile._id;
+    } else {
+      // Patient is booking for themselves
+      const patientProfile = await patientModel.findOne({
+        user: req.user.userId,
+      });
+      if (!patientProfile) {
+        return res.status(404).json({
+          success: false,
+          message: "Patient profile not found",
+        });
+      }
+      patientId = patientProfile._id;
+
+      if (!req.body.doctor) {
+        return res.status(400).json({
+          success: false,
+          message: "doctor is required",
+        });
+      }
+
+      const doctorExists = await doctorModel.findById(req.body.doctor);
+      if (!doctorExists) {
+        return res.status(404).json({
+          success: false,
+          message: "Doctor not found",
+        });
+      }
+      doctorId = doctorExists._id;
     }
 
     const { date, time, appointmentType, notes } = req.body;
@@ -31,13 +84,13 @@ const createAppointment = async (req, res) => {
 
     // Auto-generate the queue number for this doctor on this date
     const sameDayCount = await appointmentModel.countDocuments({
-      doctor,
+      doctor: doctorId,
       date,
     });
 
     const newAppointment = await appointmentModel.create({
-      patient,
-      doctor,
+      patient: patientId,
+      doctor: doctorId,
       date,
       time,
       appointmentType,
@@ -54,14 +107,41 @@ const createAppointment = async (req, res) => {
 // ==========================
 // Get All Appointments
 // - "doctor" sees appointments assigned to them
+// - "admin" sees every appointment
 // - "user" (patient) sees only their own appointments
 // ==========================
 const getAllAppointments = async (req, res) => {
   try {
     const isDoctor = req.user.role === "doctor";
-    const filter = isDoctor
-      ? { doctor: req.user.userId }
-      : { patient: req.user.userId };
+    const isAdmin = req.user.role === "admin";
+
+    let filter = {};
+
+    if (isAdmin) {
+      filter = {}; // no restriction - admin sees everything
+    } else if (isDoctor) {
+      const doctorProfile = await doctorModel.findOne({
+        user: req.user.userId,
+      });
+      if (!doctorProfile) {
+        return res.status(404).json({
+          success: false,
+          message: "Doctor profile not found",
+        });
+      }
+      filter = { doctor: doctorProfile._id };
+    } else {
+      const patientProfile = await patientModel.findOne({
+        user: req.user.userId,
+      });
+      if (!patientProfile) {
+        return res.status(404).json({
+          success: false,
+          message: "Patient profile not found",
+        });
+      }
+      filter = { patient: patientProfile._id };
+    }
 
     const appointments = await appointmentModel
       .find(filter)
@@ -97,17 +177,17 @@ const getAppointmentById = async (req, res) => {
 // ==========================
 // Update Appointment
 // Auth + ownership already handled by checkAppointmentAccess middleware
-// - the assigned doctor (or any doctor) can update everything
+// - the assigned doctor, any doctor, or an admin can update everything
 // - the owning patient can only cancel it or edit their notes
 // ==========================
 const updateAppointment = async (req, res) => {
   try {
-    const { isDoctor } = req.appointmentAccess;
+    const { isDoctor, isAdmin } = req.appointmentAccess;
 
     let updateData = req.body;
 
-    // A patient (non-doctor) may only cancel the appointment or edit notes
-    if (!isDoctor) {
+    // A patient (non-doctor, non-admin) may only cancel the appointment or edit notes
+    if (!isDoctor && !isAdmin) {
       updateData = {};
       if (req.body.notes !== undefined) updateData.notes = req.body.notes;
       if (req.body.status === "Cancelled") updateData.status = "Cancelled";
@@ -126,7 +206,7 @@ const updateAppointment = async (req, res) => {
 };
 
 // ==========================
-// Delete Appointment (doctors only)
+// Delete Appointment (doctors and admins only)
 // ==========================
 const deleteAppointment = async (req, res) => {
   try {
