@@ -5,7 +5,6 @@ const authorize = (...allowedRoles) => {
         message: "You don't have permission to perform this action",
       });
     }
-
     next();
   };
 };

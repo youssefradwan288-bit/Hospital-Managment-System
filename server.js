@@ -18,8 +18,8 @@ app.use(express.json());
 // Users route
 app.use("/users", userRouter);
 
-// Medicine route
-app.use("/api/midicine", midicineRouter);
+// Medicine routes
+app.use("/api/medicines", midicineRouter);
 
 // Medical Reports route
 app.use("/api/medicalReports", medicalReportsRouter);
