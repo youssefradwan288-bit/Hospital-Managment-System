@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-require('./users.model.js'); 
+//! require('./users.model.js'); 
 
 const userSchema = new mongoose.Schema(
   {
@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
-      match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Please enter a valid email"],
+       match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Please enter a valid email"],
     },
 
     password: {
@@ -56,6 +56,10 @@ const userSchema = new mongoose.Schema(
   },
 );
 
-});
+//! });
 
-module.exports = mongoose.model('Appointment', appointmentSchema);
+// ! module.exports = mongoose.model('Appointment', appointmentSchema);
+
+const userModel = mongoose.model("User", userSchema);
+
+module.exports = { userModel };
