@@ -1,5 +1,4 @@
 require("dotenv").config();
-require("dotenv").config();
 
 const express = require("express");
 const mongoose = require("mongoose");
@@ -10,7 +9,7 @@ const { medicalReportsRouter } = require("./routes/medicalReports.route");
 const appointmentRoutes = require("./routes/appointment.route");
 const { userRouter } = require("./routes/users.route");
 const { patientRouter } = require("./routes/patient.route");
-const notificationRoutes = require("./routes/notifications.route");
+const { notificationRouter } = require("./routes/notifications.route");
 
 const app = express();
 
@@ -31,8 +30,8 @@ app.use("/api/appointments", appointmentRoutes);
 // Patient route
 app.use("/patients", patientRouter);
 
-// Notifcations route
-app.use("/api/notifications", notificationRoutes);
+// Notifications route
+app.use("/api/notifications", notificationRouter);
 
 mongoose
   .connect(process.env.DB_LINK)

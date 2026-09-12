@@ -1,14 +1,14 @@
 const express = require("express");
+
 const router = express.Router();
 
 const { authenticate } = require("../middlewares/isLogged");
+
 const { authorize } = require("../middlewares/authorize");
-const { checkAppointmentAccess } = require("../middlewares/appointmentAccess");
+
 const {
-  createAppointmentValidationRules,
-  updateAppointmentValidationRules,
-  validate,
-} = require("../middlewares/appointmentValidation");
+  checkAppointmentAccess,
+} = require("../middlewares/appointmentAccess");
 
 const {
   createAppointment,
@@ -21,20 +21,26 @@ const {
 // All appointment routes require a logged-in user
 router.use(authenticate);
 
+// Create and get all appointments
 router
   .route("/")
   .get(getAllAppointments)
-  .post(createAppointmentValidationRules, validate, createAppointment);
+  .post(createAppointment);
 
+// Get, update and delete appointment by ID
 router
   .route("/:id")
-  .get(checkAppointmentAccess, getAppointmentById)
-  .put(
-    updateAppointmentValidationRules,
-    validate,
+  .get(
     checkAppointmentAccess,
-    updateAppointment,
+    getAppointmentById
   )
-  .delete(authorize("doctor"), deleteAppointment);
+  .put(
+    checkAppointmentAccess,
+    updateAppointment
+  )
+  .delete(
+    authorize("doctor"),
+    deleteAppointment
+  );
 
 module.exports = router;
