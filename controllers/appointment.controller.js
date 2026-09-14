@@ -135,9 +135,9 @@ const getAllAppointments = async (req, res) => {
         user: req.user.userId,
       });
       if (!patientProfile) {
-        return res.status(404).json({
+        return res.status(200).json({
           success: false,
-          message: "Patient profile not found",
+          message: "no appointment yet",
         });
       }
       filter = { patient: patientProfile._id };
@@ -207,7 +207,7 @@ const updateAppointment = async (req, res) => {
 
 // ==========================
 // Delete Appointment (doctors and admins only)
-// ==========================
+// ========================== 
 const deleteAppointment = async (req, res) => {
   try {
     const appointment = await appointmentModel.findByIdAndDelete(req.params.id);

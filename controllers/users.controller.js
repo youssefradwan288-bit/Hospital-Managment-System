@@ -52,7 +52,7 @@ const getUserById = async (req, res) => {
 // ==========================
 const addUser = async (req, res) => {
   try {
-    const { name, email, password, phone} = req.body;
+    const { name, email, password,role, phone} = req.body;
 
     // Check if email already exists
     const existingUser = await userModel.findOne({ email });
@@ -71,6 +71,7 @@ const addUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      role,
       phone,
     });
 

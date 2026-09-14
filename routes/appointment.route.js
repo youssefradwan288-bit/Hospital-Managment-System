@@ -30,3 +30,5 @@ router
   .delete(authorize("doctor", "admin"), deleteAppointment);
 
 module.exports = router;
+
+
