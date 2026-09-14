@@ -1,7 +1,5 @@
 const express = require("express");
-
 const { authenticate } = require("../middlewares/isLogged");
-
 const {
   getMyNotifications,
   getNotificationById,
@@ -19,19 +17,15 @@ notificationRouter.use(authenticate);
 // Get my notifications (?unread=true to filter)
 notificationRouter.get("/", getMyNotifications);
 
-// Mark all my notifications as read
-notificationRouter.patch("/read-all", markAllAsRead);
-
-// Get a single notification (owner only)
-notificationRouter.get("/:id", getNotificationById);
-
-// Create a notification for another user (e.g. doctor -> patient)
+// Create a notification for another user
 notificationRouter.post("/", createNotification);
 
-// Mark one notification as read (owner only)
-notificationRouter.patch("/:id/read", markAsRead);
+// 1. الثابت الأول (read-all قبل :id عشان ما يحصلش تداخل)
+notificationRouter.patch("/read-all", markAllAsRead);
 
-// Delete a notification (owner only)
+// 2. المتغير بعد كده (:id)
+notificationRouter.get("/:id", getNotificationById);
+notificationRouter.patch("/:id/read", markAsRead);
 notificationRouter.delete("/:id", deleteNotification);
 
 module.exports = {
