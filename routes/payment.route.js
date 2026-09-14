@@ -8,13 +8,16 @@ const {
   updatePayment,
 } = require("../controllers/payment.controller");
 
+const { authenticate } = require("../middlewares/isLogged.js");
+const { checkPaymentOwner } = require("../middlewares/checkPaymentOwner");
+
 router
   .route("/")
   .get(getAllPayments)
-  .post(createPayment);
+  .post(authenticate, createPayment);
 
 router
   .route("/:id")
-  .put(updatePayment);
+  .put(authenticate, checkPaymentOwner, updatePayment);
 
 module.exports = router;

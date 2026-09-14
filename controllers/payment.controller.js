@@ -5,7 +5,10 @@ require("../models/appointment.model");
 
 const createPayment = async (req, res) => {
   try {
-    const newPayment = await Payment.create(req.body);
+    const newPayment = await Payment.create({
+      ...req.body,
+      patient: req.user.userId,
+    });
 
     res.status(201).json({
       success: true,
@@ -68,8 +71,34 @@ const updatePayment = async (req, res) => {
   }
 };
 
+const deletePayment = async (req, res) => {
+  try {
+    const deletedPayment = await Payment.findByIdAndDelete(req.params.id);
+
+    if (!deletedPayment) {
+      return res.status(404).json({
+        success: false,
+        message: "Payment not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Payment deleted successfully",
+      data: deletedPayment,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createPayment,
   getAllPayments,
   updatePayment,
+  deletePayment,
 };
+
