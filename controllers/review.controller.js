@@ -3,9 +3,13 @@ const Review = require("../models/review.model");
 require("../models/users.model");
 require("../models/appointment.model");
 
+
 const createReview = async (req, res) => {
   try {
-    const newReview = await Review.create(req.body);
+    const newReview = await Review.create({
+      ...req.body,
+      patient: req.user.userId,
+    });
 
     res.status(201).json({
       success: true,
@@ -18,6 +22,7 @@ const createReview = async (req, res) => {
     });
   }
 };
+
 
 const getAllReviews = async (req, res) => {
   try {
