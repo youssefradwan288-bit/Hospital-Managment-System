@@ -1,7 +1,7 @@
 const appointmentModel = require("../models/appointment.model");
 const patientModel = require("../models/patient.model");
 const doctorModel = require("../models/doctors.model");
-
+//-------------------------------------------------------------------
 // Loads the appointment from :id ONE time and checks that the logged-in
 // user is allowed to touch it:
 // - the owning patient

@@ -233,7 +233,3 @@ module.exports = {
   updateAppointment,
   deleteAppointment,
 };
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
