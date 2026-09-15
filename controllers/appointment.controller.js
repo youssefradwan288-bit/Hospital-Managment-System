@@ -207,7 +207,7 @@ const updateAppointment = async (req, res) => {
 
 // ==========================
 // Delete Appointment (doctors and admins only)
-// ========================== 
+// ==========================
 const deleteAppointment = async (req, res) => {
   try {
     const appointment = await appointmentModel.findByIdAndDelete(req.params.id);
@@ -233,3 +233,4 @@ module.exports = {
   updateAppointment,
   deleteAppointment,
 };
+//--------------------------------------------------------------------------
