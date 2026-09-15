@@ -225,7 +225,7 @@ const deleteAppointment = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
+//--------------------------------------------------------------------------
 module.exports = {
   createAppointment,
   getAllAppointments,
@@ -233,4 +233,3 @@ module.exports = {
   updateAppointment,
   deleteAppointment,
 };
-//--------------------------------------------------------------------------
